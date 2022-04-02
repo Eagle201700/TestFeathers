@@ -1,3 +1,13 @@
+def withDockerNetwork(Closure inner) {
+  try {
+    networkId = UUID.randomUUID().toString()
+    sh "docker network create ${networkId}"
+    inner.call(networkId)
+  } finally {
+    sh "docker network rm ${networkId}"
+  }
+}
+
 pipeline {
     agent none
     environment{
@@ -15,6 +25,7 @@ pipeline {
             steps {
                 sh 'node --version'
                 sh "npm install"
+                sh "docker run -d -p 27017:27017 --name example-mongo mongo:latest "
             }
         }
         stage('Front-end') {
